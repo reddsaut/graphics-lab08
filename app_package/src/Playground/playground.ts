@@ -7,12 +7,15 @@ class Playground {
         function createPyramid(width: number, height: number) {
             var pyramid = new BABYLON.Mesh("pyramid", scene);
 
-            var indices = [0, 1, 2, 3, 4];
-            var positions = [0,0,0, width,0,0, 0,width,0, width,width,0, width/2,width/2,height];
-
+            var indices = [0,1,4, 0,2,4, 1,3,4, 2,3,4, 0,1,2, 1,2,3];
+            var positions = [0,0,0, width,0,0, 0,0,width, width,0,width, width/2,height,width/2];
             var vertexData = new BABYLON.VertexData();
             vertexData.positions = positions;
             vertexData.indices = indices;
+            
+            var mat = new BABYLON.StandardMaterial("mat", scene);
+            mat.backFaceCulling = false;
+            pyramid.material = mat;
 
             vertexData.applyToMesh(pyramid);
 
