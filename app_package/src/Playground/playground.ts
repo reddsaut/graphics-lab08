@@ -4,18 +4,40 @@ import "@babylonjs/loaders";
 class Playground {
 
     public static CreateScene(engine: BABYLON.Engine, canvas: HTMLCanvasElement): BABYLON.Scene {
-        function createPyramid(width: number, height: number) {
+        function createPyramid(w: number, h: number) {
             var pyramid = new BABYLON.Mesh("pyramid", scene);
 
-            var indices = [0,1,4, 0,2,4, 1,3,4, 2,3,4, 0,1,2, 1,2,3];
-            var positions = [0,0,0, width,0,0, 0,0,width, width,0,width, width/2,height,width/2];
+            var indices = [0,1,2, 3,4,5, 6,7,8, 9,10,11, 12,13,14, 15,16,17];
+            //var indices = [0,1,2];
+            //var p = [0,0,0, width,0,0, 0,0,width, width,0,width, width/2,height,width/2];
+            var positions = [0,0,0, w,0,0, 0,0,w,
+                             w,0,w, w,0,0, 0,0,w,
+                             0,0,0, 0,0,w, w/2,h,w/2,
+                             0,0,0, w,0,0, w/2,h,w/2,
+                             0,0,w, w,0,w, w/2,h,w/2,
+                             w,0,0, w,0,w, w/2,h,w/2,
+            ];
+            //var positions = [0,0,0, width,0,0, width/2,height,width/2];
+            var uvs = [0,0, 1,0, 0,1,
+                       1,1, 1,0, 0,1,
+                       0,0, 1,0, 0.5,1,
+                       0,0, 0,1, 0.5,1,
+                       0,1, 1,1, 0.5,1,
+                       1,0, 1,1, 0.5,1
+                        ];
+            var normals: number[] = [];
+            BABYLON.VertexData.ComputeNormals(positions, indices, normals);
+
+
             var vertexData = new BABYLON.VertexData();
             vertexData.positions = positions;
             vertexData.indices = indices;
+            vertexData.normals = normals;
+            vertexData.uvs = uvs;
             
-            var mat = new BABYLON.StandardMaterial("mat", scene);
-            mat.backFaceCulling = false;
-            pyramid.material = mat;
+            //var mat = new BABYLON.StandardMaterial("mat", scene);
+            //mat.backFaceCulling = false;
+            //pyramid.material = mat;
 
             vertexData.applyToMesh(pyramid);
 
@@ -39,9 +61,9 @@ class Playground {
         ground.material.emissiveColor = BABYLON.Color3.Gray();
 
         // box mesh for use with our shader
-        const box = BABYLON.MeshBuilder.CreateBox("box", { size: 2 });
-        box.position.y = 1;
-        box.position.x = 1.5;
+        //const box = BABYLON.MeshBuilder.CreateBox("box", { size: 2 });
+        //box.position.y = 1;
+        //box.position.x = 1.5;
 
         // box mesh to see how BabylonJS renders ligh
         const controlbox = BABYLON.MeshBuilder.CreateBox("control box", { size: 2 });
@@ -85,7 +107,6 @@ class Playground {
         uniform sampler2D mainTexture;
 
         void main() {
-             // implement basic texturing
              
             vec4 color = texture(mainTexture, vUV);
             gl_FragColor = color;
@@ -106,10 +127,14 @@ class Playground {
                 samplers: ["mainTexture"]
             });
         shaderMaterial.setTexture("mainTexture", texture);
-        box.material = shaderMaterial;
+        //box.material = shaderMaterial;
 
-        var pyramid = createPyramid(5,5);
-        pyramid.position.y = 5;
+        var pyramid = createPyramid(2,2);
+        pyramid.material = shaderMaterial;
+        //shaderMaterial.backFaceCulling = false;
+        pyramid.position.y = 0.5;
+        pyramid.position.x = 1;
+        pyramid.position.z = -0.5;
 
         return scene;
     }
