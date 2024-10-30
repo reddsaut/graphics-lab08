@@ -2,7 +2,23 @@ import * as BABYLON from "@babylonjs/core";
 import "@babylonjs/loaders";
 
 class Playground {
+
     public static CreateScene(engine: BABYLON.Engine, canvas: HTMLCanvasElement): BABYLON.Scene {
+        function createPyramid(width: number, height: number) {
+            var pyramid = new BABYLON.Mesh("pyramid", scene);
+
+            var indices = [0, 1, 2, 3, 4];
+            var positions = [0,0,0, width,0,0, 0,width,0, width,width,0, width/2,width/2,height];
+
+            var vertexData = new BABYLON.VertexData();
+            vertexData.positions = positions;
+            vertexData.indices = indices;
+
+            vertexData.applyToMesh(pyramid);
+
+            return pyramid;
+        }
+
         // Scene, Camera and Light setup
         const scene = new BABYLON.Scene(engine);
         const camera = new BABYLON.ArcRotateCamera("Camera", -Math.PI / 2, 1, 10, new BABYLON.Vector3(0, 0, 0), scene);
@@ -39,12 +55,15 @@ class Playground {
         // ` ` these quatioan marks allow a multi-line string in Javascript (" " or ' ' is single line)
         var vertex_shader = `
         attribute vec3 position;
+        attribute vec2 uv;
+
+        varying vec2 vUV;
 
         uniform mat4 world;
         uniform mat4 view;
         uniform mat4 projection;
         uniform mat3 inverseTranspose;
-               
+
         void main() {
             vec4 localPosition = vec4(position, 1.);
             vec4 worldPosition = world * localPosition;     
@@ -52,14 +71,21 @@ class Playground {
             vec4 clipPosition  = projection * viewPosition;
 
             gl_Position = clipPosition;
+
+            vUV = uv;
         }
     `;
 
         var fragment_shader = `
 
+        varying vec2 vUV;
+        uniform sampler2D mainTexture;
+
         void main() {
              // implement basic texturing
-            gl_FragColor = vec4(1,0,0,1);
+             
+            vec4 color = texture(mainTexture, vUV);
+            gl_FragColor = color;
         }
     `;
 
@@ -70,11 +96,18 @@ class Playground {
         },
             {
                 // assign shader inputs
-                attributes: ["position"], // position and uv are BabylonJS build-in
-                uniforms: ["world", "view", "projection"] // world, view, projection are BabylonJS build-in
+                attributes: ["position", "uv"], // position and uv are BabylonJS build-in
+                uniforms: ["world", "view", "projection",
+                    "inverseTranspose"
+                ], // world, view, projection are BabylonJS build-in
+                samplers: ["mainTexture"]
             });
-
+        shaderMaterial.setTexture("mainTexture", texture);
         box.material = shaderMaterial;
+
+        var pyramid = createPyramid(5,5);
+        pyramid.position.y = 5;
+
         return scene;
     }
 }
